@@ -15,6 +15,12 @@ window.tiles = {
   worldedge: "E"
 };
 
+window.tileColors = {
+  house: "crimson",
+  city: "burlywood",
+  monument: "blueviolet"
+};
+
 window.inverseTiles = {};
 for (let [key, value] of Object.entries(window.tiles)) {
   window.inverseTiles[value] = key;
@@ -144,7 +150,7 @@ let WORLD = {
 WORLD.setInvalids();
 
 function generateWorldTileAt(x, y) {
-  return WORLD.deriveTile(x, y);
+  return WORLD.deriveTile(x, -y);
 }
 
 // ==================================

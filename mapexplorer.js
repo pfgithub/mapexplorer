@@ -43,7 +43,10 @@ function rerenderNow() {
 
   for (let y = yst; y <= cy; y++) {
     for (let x = xst; x <= cx; x++) {
-      ctx.fillStyle = "black"; // replace this with the real color
+      let tile = generateWorldTileAt(x, y);
+      let special = window.tileColors[window.inverseTiles[tile]];
+      ctx.fillStyle = special || "black";
+
       let xUL = x * characterWidth - drawOffsetX;
       let yUL = y * characterHeight - drawOffsetY;
       if (x === gmxCoord && y === gmyCoord) {
@@ -51,7 +54,7 @@ function rerenderNow() {
         ctx.fillRect(xUL, yUL, characterWidth, characterHeight);
         ctx.fillStyle = "white";
       }
-      ctx.fillText(generateWorldTileAt(x, y), xUL, yUL);
+      ctx.fillText(tile, xUL, yUL);
     }
   }
   ctx.font = "12pt sans-serif";
