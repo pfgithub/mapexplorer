@@ -52,19 +52,19 @@ function rerender() {
   let targetTile = generateWorldTileAt(gmxCoord, gmyCoord);
   let text = `Coords: ${gmxCoord}x/${gmyCoord}y. Targeted tile: ${window.inverseTiles[targetTile]}`;
   let textSize = ctx.measureText(text);
-  let textHeight = ctx.measureText("M").width; // approx. see https://stackoverflow.com/questions/1134586/how-can-you-find-the-height-of-text-on-an-html-canvas
+  let textHeight = ctx.measureText("@").width; // approx. see https://stackoverflow.com/questions/1134586/how-can-you-find-the-height-of-text-on-an-html-canvas
   ctx.fillStyle = "white";
   ctx.shadowColor = "rgba(0,0,0,0.5)";
   ctx.shadowBlur = 6;
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 3;
-  ctx.fillRect(0, 0, textSize.width + 20, textHeight + 20);
+  ctx.fillRect(10, 10, textSize.width + 20, textHeight + 20);
   ctx.shadowColor = "";
   ctx.shadowBlur = 0;
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 0;
   ctx.fillStyle = "black";
-  ctx.fillText(text, 10, 10);
+  ctx.fillText(text, 20, 20);
 }
 
 function updateBoardSize() {
@@ -85,9 +85,7 @@ window.addEventListener("resize", () => {
 document.body.appendChild(board);
 
 let pointers = {};
-// let pinx = 0;
-// let piny = 0;
-// let mousedown = false;
+
 document.addEventListener("pointerdown", e => {
   pointers[e.pointerId] = {
     mousedown: true,
