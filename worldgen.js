@@ -1,23 +1,30 @@
+window.tiles = {
+  traveler: "?",
+  sand: "s",
+  grass: "g",
+  tree: "t",
+  water: "~",
+  swamp: "w",
+  mountain: "m",
+  forest: "f",
+  house: "H",
+  city: "C",
+  startbox: "b",
+  monument: "M",
+  island: "i",
+  worldedge: "E"
+};
+
+window.inverseTiles = {};
+for (let [key, value] of Object.entries(window.tiles)) {
+  window.inverseTiles[value] = key;
+}
+
 let WORLD = {
   seed: 20171007,
   gridRadius: 15,
   edgeDist: 20000,
-  TILES: {
-    traveler: "?",
-    sand: "s",
-    grass: "g",
-    tree: "t",
-    water: "~",
-    swamp: "w",
-    mountain: "m",
-    forest: "f",
-    house: "H",
-    city: "C",
-    startbox: "b",
-    monument: "M",
-    island: "i",
-    worldedge: "E"
-  },
+  TILES: window.tiles,
 
   setInvalids: function() {
     this.invalidStand = this.TILES.worldedge + this.TILES.water;

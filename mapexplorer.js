@@ -41,7 +41,24 @@ function rerender() {
       ctx.fillText(generateWorldTileAt(x, y), xUL, yUL);
     }
   }
-  ctx.fillText(`Coords: ${gmxCoord}/${gmyCoord}`, 10, 10);
+  ctx.font = "16pt sans-serif";
+  ctx.textBaseline = "top";
+  let targetTile = generateWorldTileAt(gmxCoord, gmyCoord);
+  let text = `Coords: ${gmxCoord}x/${gmyCoord}y. Targeted tile: ${window.inverseTiles[targetTile]}`;
+  let textSize = ctx.measureText(text);
+  let textHeight = ctx.measureText("M").width; // approx. see https://stackoverflow.com/questions/1134586/how-can-you-find-the-height-of-text-on-an-html-canvas
+  ctx.fillStyle = "white";
+  ctx.shadowColor = "rgba(0,0,0,0.5)";
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 3;
+  ctx.fillRect(0, 0, textSize.width + 20, textHeight + 20);
+  ctx.shadowColor = "";
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillStyle = "black";
+  ctx.fillText(text, 10, 10);
 }
 
 function updateBoardSize() {
@@ -78,8 +95,8 @@ document.addEventListener("mousemove", e => {
     rerender();
   }
 
-  let mouseXCoord = Math.round((e.clientX + drawOffsetX) / characterWidth);
-  let mouseYCoord = Math.round((e.clientY + drawOffsetY) / characterHeight);
+  let mouseXCoord = Math.floor((e.clientX + drawOffsetX) / characterWidth);
+  let mouseYCoord = Math.floor((e.clientY + drawOffsetY) / characterHeight);
 
   gmxCoord = mouseXCoord;
   gmyCoord = mouseYCoord;
