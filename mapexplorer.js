@@ -7,6 +7,7 @@ let ctx = board.getContext("2d");
 
 let WIDTH = 0;
 let HEIGHT = 0;
+let PIXELRATIO = 1;
 
 let characterWidth = 30;
 let characterHeight = 30;
@@ -22,6 +23,8 @@ function rerender() {
 
   let cx = Math.ceil(WIDTH / characterWidth) + xst;
   let cy = Math.ceil(HEIGHT / characterHeight) + yst;
+
+  ctx.scale(PIXELRATIO, PIXELRATIO);
 
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
@@ -64,8 +67,9 @@ function rerender() {
 function updateBoardSize() {
   WIDTH = window.innerWidth;
   HEIGHT = window.innerHeight;
-  board.width = WIDTH;
-  board.height = HEIGHT;
+  PIXELRATIO = window.devicePixelRatio || 1;
+  board.width = WIDTH * PIXELRATIO;
+  board.height = HEIGHT * PIXELRATIO;
   rerender();
 }
 
@@ -81,12 +85,14 @@ let pinx = 0;
 let piny = 0;
 let mousedown = false;
 document.addEventListener("mousedown", e => {
+  e.preventDefault();
   mousedown = true;
   pinx = e.clientX;
   piny = e.clientY;
 });
 
 document.addEventListener("mousemove", e => {
+  e.preventDefault();
   if (mousedown) {
     drawOffsetX += pinx - e.clientX;
     pinx = e.clientX;
@@ -104,9 +110,11 @@ document.addEventListener("mousemove", e => {
 });
 
 document.addEventListener("mouseup", e => {
+  e.preventDefault();
   mousedown = false;
 });
 document.addEventListener("wheel", e => {
+  e.preventDefault();
   let dy = e.deltaY;
   let ow = characterWidth;
   let oh = characterHeight;
