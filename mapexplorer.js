@@ -4,6 +4,7 @@ let ctn = txt => document.createTextNode(txt);
 let board = el("canvas");
 board.classList.add("explorerboard");
 let ctx = board.getContext("2d");
+ctx.save();
 
 let WIDTH = 0;
 let HEIGHT = 0;
@@ -24,6 +25,8 @@ function rerender() {
   let cx = Math.ceil(WIDTH / characterWidth) + xst;
   let cy = Math.ceil(HEIGHT / characterHeight) + yst;
 
+  ctx.restore();
+  ctx.save();
   ctx.scale(PIXELRATIO, PIXELRATIO);
 
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
@@ -67,7 +70,7 @@ function rerender() {
 function updateBoardSize() {
   WIDTH = window.innerWidth;
   HEIGHT = window.innerHeight;
-  PIXELRATIO = window.devicePixelRatio || 1;
+  PIXELRATIO = 2 || window.devicePixelRatio || 1;
   board.width = WIDTH * PIXELRATIO;
   board.height = HEIGHT * PIXELRATIO;
   rerender();
@@ -84,14 +87,14 @@ document.body.appendChild(board);
 let pinx = 0;
 let piny = 0;
 let mousedown = false;
-document.addEventListener("mousedown", e => {
+document.addEventListener("pointerdown", e => {
   e.preventDefault();
   mousedown = true;
   pinx = e.clientX;
   piny = e.clientY;
 });
 
-document.addEventListener("mousemove", e => {
+document.addEventListener("pointermove", e => {
   e.preventDefault();
   if (mousedown) {
     drawOffsetX += pinx - e.clientX;
@@ -109,7 +112,7 @@ document.addEventListener("mousemove", e => {
   rerender();
 });
 
-document.addEventListener("mouseup", e => {
+document.addEventListener("pointerup", e => {
   e.preventDefault();
   mousedown = false;
 });

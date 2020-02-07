@@ -1,22 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html touch-action="none">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MapExplorer</title>
 
     <style>
+      :root {
+        touch-action: manipulation;
+      }
       .explorerboard {
         position: fixed;
         top: 0;
         left: 0;
-        bottom: 0;
-        right: 0;
+        width: 100%;
+        height: 100%;
         cursor: none;
       }
     </style>
   </head>
   <body>
     <script src="worldgen.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
     <script src="mapexplorer.js"></script>
   </body>
 </html>
