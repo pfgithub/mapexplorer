@@ -60,7 +60,9 @@ function rerenderNow() {
   ctx.font = "12pt sans-serif";
   ctx.textBaseline = "top";
   let targetTile = generateWorldTileAt(gmxCoord, gmyCoord);
-  let text = `Coords: ${gmxCoord}x/${gmyCoord}y. Selected Tile: ${window.inverseTiles[targetTile]}`;
+  let text = `Coords: ${gmxCoord}x/${-gmyCoord}y. Selected Tile: ${
+    window.inverseTiles[targetTile]
+  }`;
   let textSize = ctx.measureText(text);
   let textHeight = ctx.measureText("@").width; // approx. see https://stackoverflow.com/questions/1134586/how-can-you-find-the-height-of-text-on-an-html-canvas
   ctx.fillStyle = "white";
