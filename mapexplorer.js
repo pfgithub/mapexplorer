@@ -84,23 +84,26 @@ window.addEventListener("resize", () => {
 });
 document.body.appendChild(board);
 
-let pinx = 0;
-let piny = 0;
-let mousedown = false;
+let pointers = {};
+// let pinx = 0;
+// let piny = 0;
+// let mousedown = false;
 document.addEventListener("pointerdown", e => {
-  e.preventDefault();
-  mousedown = true;
-  pinx = e.clientX;
-  piny = e.clientY;
+  pointers[e.pointerId] = {
+    mousedown: true,
+    pinx: e.clientX,
+    piny: e.clientY,
+    event: e
+  };
 });
 
 document.addEventListener("pointermove", e => {
-  e.preventDefault();
-  if (mousedown) {
-    drawOffsetX += pinx - e.clientX;
-    pinx = e.clientX;
-    drawOffsetY += piny - e.clientY;
-    piny = e.clientY;
+  let pt = pointers[e.pointerId];
+  if (pt && pt.mousedown) {
+    drawOffsetX += pt.pinx - e.clientX;
+    pt.pinx = e.clientX;
+    drawOffsetY += pt.piny - e.clientY;
+    pt.piny = e.clientY;
     rerender();
   }
 
@@ -113,11 +116,11 @@ document.addEventListener("pointermove", e => {
 });
 
 document.addEventListener("pointerup", e => {
-  e.preventDefault();
-  mousedown = false;
+  let pt = pointers[e.pointerId];
+  if (pt) pt.mousedown = false;
+  delete pointers[e.pointerId];
 });
 document.addEventListener("wheel", e => {
-  e.preventDefault();
   let dy = e.deltaY;
   let ow = characterWidth;
   let oh = characterHeight;
@@ -137,3 +140,13 @@ document.addEventListener("wheel", e => {
 
   rerender();
 });
+
+document.addEventListener(
+  "touchstart",
+  event => {
+    if (event.touches.length > 1) {
+      event.preventDefault();
+    }
+  },
+  { passive: false, capture: true }
+);
