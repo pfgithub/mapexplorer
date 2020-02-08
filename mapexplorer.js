@@ -26,11 +26,6 @@ function rerender() {
 }
 function rerenderNow() {
   rerenderTriggered = false;
-  let xst = Math.floor(drawOffsetX / characterWidth);
-  let yst = Math.floor(drawOffsetY / characterHeight);
-
-  let cx = Math.ceil(WIDTH / characterWidth) + xst;
-  let cy = Math.ceil(HEIGHT / characterHeight) + yst;
 
   ctx.restore();
   ctx.save();
@@ -38,25 +33,105 @@ function rerenderNow() {
 
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
+  let fastMode = false;
+  let gridMode = 1;
+  let skipDraw = false;
+  // if (characterWidth < 10) fastMode = true;
+
+  let farScaleFactor = 1;
+
+  let xst = 0;
+  let yst = 0;
+
+  let cx = 0;
+  let cy = 0;
+
+  let expectedRenderCount = 0;
+
+  let updateXYST = () => {
+    xst = Math.floor(drawOffsetX / (characterWidth * farScaleFactor));
+    yst = Math.floor(drawOffsetY / (characterHeight * farScaleFactor));
+
+    cx = Math.ceil(WIDTH / (characterWidth * farScaleFactor)) + xst;
+    cy = Math.ceil(HEIGHT / (characterHeight * farScaleFactor)) + yst;
+
+    expectedRenderCount = (xst - cx) * (yst - cy);
+  };
+
+  updateXYST();
+  while (expectedRenderCount > 40000) {
+    farScaleFactor *= 100;
+    gridMode++;
+    updateXYST();
+  }
+  if (expectedRenderCount > 5000) {
+    fastMode = true;
+  }
+  if (expectedRenderCount > 1000) {
+    gridMode = 1;
+  }
+
   ctx.textBaseline = "top";
-  ctx.font = characterWidth + "px monospace";
+  ctx.font = characterWidth * farScaleFactor + "px monospace";
 
   for (let y = yst; y <= cy; y++) {
     for (let x = xst; x <= cx; x++) {
-      let tile = generateWorldTileAt(x, y);
+      let tile = generateWorldTileAt(x * farScaleFactor, y * farScaleFactor);
       let special = window.tileColors[window.inverseTiles[tile]];
       ctx.fillStyle = special || "black";
 
-      let xUL = x * characterWidth - drawOffsetX;
-      let yUL = y * characterHeight - drawOffsetY;
-      if (x === gmxCoord && y === gmyCoord) {
+      let xUL = x * (characterWidth * farScaleFactor) - drawOffsetX;
+      let yUL = y * (characterHeight * farScaleFactor) - drawOffsetY;
+      if (
+        (x === Math.floor(gmxCoord / farScaleFactor) &&
+          y === Math.floor(gmyCoord / farScaleFactor)) ||
+        special
+      ) {
         // console.log(xUL, yUL);
-        ctx.fillRect(xUL, yUL, characterWidth, characterHeight);
+        if (x === gmxCoord && y === gmyCoord) {
+          ctx.fillStyle = "black";
+        }
+        ctx.fillRect(
+          xUL,
+          yUL,
+          characterWidth * farScaleFactor,
+          characterHeight * farScaleFactor
+        );
         ctx.fillStyle = "white";
       }
-      ctx.fillText(tile, xUL, yUL);
+      if (fastMode) {
+        ctx.fillRect(
+          xUL,
+          yUL,
+          (characterWidth * farScaleFactor) / 3,
+          (characterHeight * farScaleFactor) / 3
+        );
+      } else {
+        ctx.fillText(tile, xUL, yUL);
+        if (gridMode > 1) {
+          ctx.beginPath();
+          ctx.rect(
+            xUL,
+            yUL,
+            characterWidth * farScaleFactor,
+            characterHeight * farScaleFactor
+          );
+          ctx.stroke();
+          if (gridMode > 2) {
+            ctx.beginPath();
+            ctx.rect(
+              xUL + 5,
+              yUL + 5,
+              characterWidth * farScaleFactor - 10,
+              characterHeight * farScaleFactor - 10
+            );
+            ctx.stroke();
+          }
+        }
+      }
     }
   }
+
   ctx.font = "12pt sans-serif";
   ctx.textBaseline = "top";
   let targetTile = generateWorldTileAt(gmxCoord, gmyCoord);
@@ -168,14 +243,16 @@ document.addEventListener("pointerup", e => {
   }
 });
 
-function scale(factor, centerX, centerY) {
+function scale(userFactor, centerX, centerY) {
+  let factor = userFactor * (characterWidth ** 1.1 / 12.589);
+
   let ow = characterWidth;
   let oh = characterHeight;
   characterWidth -= factor;
   characterHeight -= factor;
-  if (characterWidth < 10) {
-    characterWidth = 10;
-    characterHeight = 10;
+  if (characterWidth < 0.01) {
+    characterWidth = 0.01;
+    characterHeight = 0.01;
   }
 
   drawOffsetX -=
@@ -184,6 +261,7 @@ function scale(factor, centerX, centerY) {
     centerY * oh - drawOffsetY - (centerY * characterHeight - drawOffsetY);
 
   rerender();
+  console.log(characterHeight);
 }
 
 document.addEventListener("wheel", e => {
