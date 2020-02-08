@@ -18,7 +18,8 @@ window.tiles = {
 window.tileColors = {
   house: "crimson",
   city: "burlywood",
-  monument: "blueviolet"
+  monument: "blueviolet",
+  worldedge: "midnightblue"
 };
 
 window.inverseTiles = {};
