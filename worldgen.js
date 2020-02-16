@@ -30,7 +30,7 @@ for (let [key, value] of Object.entries(window.tiles)) {
 let WORLD = {
   seed: 20171007,
   gridRadius: 15,
-  edgeDist: 20000,
+  edgeDist: 50000,
   TILES: window.tiles,
 
   setInvalids: function() {
@@ -52,7 +52,7 @@ let WORLD = {
 
     // ground
     let bottomtile = this.TILES.sand,
-      giganticPerl = this.getPerlin(x + 10000, y + 8000, 10000),
+      giganticPerl = this.getPerlin(x + 20000, y - 20000, 10000),
       hugePerl = this.getPerlin(x, y, 5001),
       bigPerl = this.getPerlin(x, y),
       smallPerl = this.getPerlin(x, y, 10),
@@ -151,7 +151,7 @@ let WORLD = {
 WORLD.setInvalids();
 
 function generateWorldTileAt(x, y) {
-  return WORLD.deriveTile(x, -y);
+  return WORLD.deriveTile(x, y);
 }
 
 // ==================================
@@ -166,7 +166,7 @@ function generateWorldTileAt(x, y) {
 // OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 {
-  let module = (window.noise = {});
+  let module = (global.noise = {});
 
   function Grad(x, y, z) {
     this.x = x;
