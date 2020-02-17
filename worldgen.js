@@ -151,7 +151,7 @@ let WORLD = {
 WORLD.setInvalids();
 
 function generateWorldTileAt(x, y) {
-  return WORLD.deriveTile(x, y);
+  return WORLD.deriveTile(x, -y);
 }
 
 // ==================================
@@ -166,7 +166,7 @@ function generateWorldTileAt(x, y) {
 // OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 {
-  let module = (global.noise = {});
+  let module = (window.noise = {});
 
   function Grad(x, y, z) {
     this.x = x;
