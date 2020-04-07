@@ -117,16 +117,6 @@ function rerenderNow() {
             characterHeight * farScaleFactor
           );
           ctx.stroke();
-          if (gridMode > 2) {
-            ctx.beginPath();
-            ctx.rect(
-              xUL + 5,
-              yUL + 5,
-              characterWidth * farScaleFactor - 10,
-              characterHeight * farScaleFactor - 10
-            );
-            ctx.stroke();
-          }
         }
       }
     }
@@ -250,9 +240,9 @@ function scale(userFactor, centerX, centerY) {
   let oh = characterHeight;
   characterWidth -= factor;
   characterHeight -= factor;
-  if (characterWidth < 0.01) {
-    characterWidth = 0.01;
-    characterHeight = 0.01;
+  if (characterWidth < 0.0005) {
+    characterWidth = 0.0005;
+    characterHeight = 0.0005;
   }
 
   drawOffsetX -=

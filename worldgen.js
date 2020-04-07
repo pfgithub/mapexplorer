@@ -1,6 +1,6 @@
 window.tiles = {
   traveler: "&",
-  sand: " ",
+  sand: "\u00a0",
   grass: ",",
   tree: "t",
   water: "w",
@@ -10,7 +10,7 @@ window.tiles = {
   house: "H",
   city: "C",
   startbox: "u",
-  monument: "\u258B",
+  monument: " ",
   island: ".",
   worldedge: "\u2591"
 };
