@@ -1,25 +1,26 @@
 window.tiles = {
-  traveler: "?",
-  sand: "s",
-  grass: "g",
+  traveler: "&",
+  sand: " ",
+  grass: ",",
   tree: "t",
-  water: "~",
-  swamp: "w",
-  mountain: "m",
-  forest: "f",
+  water: "w",
+  swamp: "~",
+  mountain: "M",
+  forest: "T",
   house: "H",
   city: "C",
-  startbox: "b",
-  monument: "M",
-  island: "i",
-  worldedge: "E"
+  startbox: "u",
+  monument: "\u258B",
+  island: ".",
+  worldedge: "\u2591"
 };
 
 window.tileColors = {
   house: "crimson",
-  city: "burlywood",
+  city: "darkslategray",
   monument: "blueviolet",
-  worldedge: "midnightblue"
+  worldedge: "midnightblue",
+  water: "aquamarine"
 };
 
 window.inverseTiles = {};
