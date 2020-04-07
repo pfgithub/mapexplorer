@@ -60,7 +60,7 @@ function rerenderNow() {
 
   updateXYST();
   while (expectedRenderCount > 40000) {
-    farScaleFactor *= 100;
+    farScaleFactor *= 10;
     gridMode++;
     updateXYST();
   }
