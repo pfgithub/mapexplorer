@@ -20,7 +20,8 @@ window.tileColors = {
   city: "darkslategray",
   monument: "blueviolet",
   worldedge: "midnightblue",
-  water: "aquamarine"
+  water: "aquamarine",
+  forest: "#078C1C"
 };
 
 window.inverseTiles = {};
