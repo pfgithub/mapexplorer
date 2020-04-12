@@ -100,12 +100,29 @@ function rerenderNow() {
         ctx.fillStyle = "white";
       }
       if (fastMode) {
-        ctx.fillRect(
-          xUL,
-          yUL,
-          (characterWidth * farScaleFactor) / 3,
-          (characterHeight * farScaleFactor) / 3
-        );
+        if (tile === "\u00a0") {
+        } else if (tile === ",") {
+          ctx.fillRect(
+            xUL,
+            yUL,
+            (characterWidth * farScaleFactor) / 3,
+            (characterHeight * farScaleFactor) / 3
+          );
+        } else if (tile === "~") {
+          ctx.fillRect(
+            xUL,
+            yUL,
+            characterWidth * farScaleFactor * 0.7,
+            characterHeight * farScaleFactor * 0.2
+          );
+        } else {
+          ctx.fillRect(
+            xUL,
+            yUL,
+            (characterWidth * farScaleFactor) / 3,
+            characterHeight * farScaleFactor * 0.7
+          );
+        }
       } else {
         ctx.fillText(tile, xUL, yUL);
         if (gridMode > 1) {
