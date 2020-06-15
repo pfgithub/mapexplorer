@@ -60,7 +60,7 @@ function rerenderNow() {
 
   updateXYST();
   while (expectedRenderCount > 40000) {
-    farScaleFactor *= 100;
+    farScaleFactor *= 10;
     gridMode++;
     updateXYST();
   }
@@ -100,12 +100,29 @@ function rerenderNow() {
         ctx.fillStyle = "white";
       }
       if (fastMode) {
-        ctx.fillRect(
-          xUL,
-          yUL,
-          (characterWidth * farScaleFactor) / 3,
-          (characterHeight * farScaleFactor) / 3
-        );
+        if (tile === "\u00a0") {
+        } else if (tile === ",") {
+          ctx.fillRect(
+            xUL,
+            yUL,
+            (characterWidth * farScaleFactor) / 3,
+            (characterHeight * farScaleFactor) / 3
+          );
+        } else if (tile === "~") {
+          ctx.fillRect(
+            xUL,
+            yUL,
+            characterWidth * farScaleFactor * 0.7,
+            characterHeight * farScaleFactor * 0.2
+          );
+        } else {
+          ctx.fillRect(
+            xUL,
+            yUL,
+            (characterWidth * farScaleFactor) / 3,
+            characterHeight * farScaleFactor * 0.7
+          );
+        }
       } else {
         ctx.fillText(tile, xUL, yUL);
         if (gridMode > 1) {
@@ -117,16 +134,6 @@ function rerenderNow() {
             characterHeight * farScaleFactor
           );
           ctx.stroke();
-          if (gridMode > 2) {
-            ctx.beginPath();
-            ctx.rect(
-              xUL + 5,
-              yUL + 5,
-              characterWidth * farScaleFactor - 10,
-              characterHeight * farScaleFactor - 10
-            );
-            ctx.stroke();
-          }
         }
       }
     }
@@ -250,9 +257,9 @@ function scale(userFactor, centerX, centerY) {
   let oh = characterHeight;
   characterWidth -= factor;
   characterHeight -= factor;
-  if (characterWidth < 0.01) {
-    characterWidth = 0.01;
-    characterHeight = 0.01;
+  if (characterWidth < 0.0005) {
+    characterWidth = 0.0005;
+    characterHeight = 0.0005;
   }
 
   drawOffsetX -=

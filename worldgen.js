@@ -1,6 +1,6 @@
 window.tiles = {
   traveler: "&",
-  sand: " ",
+  sand: "\u00a0",
   grass: ",",
   tree: "t",
   water: "w",
@@ -10,7 +10,7 @@ window.tiles = {
   house: "H",
   city: "C",
   startbox: "u",
-  monument: "\u258B",
+  monument: " ",
   island: ".",
   worldedge: "\u2591"
 };
@@ -19,7 +19,9 @@ window.tileColors = {
   house: "crimson",
   city: "darkslategray",
   monument: "blueviolet",
-  worldedge: "midnightblue"
+  worldedge: "midnightblue",
+  water: "aquamarine",
+  forest: "#078C1C"
 };
 
 let YOU = {x: 584398943189032458902543, y: 5238954073254879025348907, char: "&"};
