@@ -1,115 +1,219 @@
 window.tiles = {
-  traveler: "?",
-  sand: "s",
-  grass: "g",
+  traveler: "&",
+  sand: " ",
+  grass: ",",
   tree: "t",
-  water: "~",
-  swamp: "w",
-  mountain: "m",
-  forest: "f",
+  water: "w",
+  swamp: "~",
+  mountain: "M",
+  forest: "T",
   house: "H",
   city: "C",
-  startbox: "b",
-  monument: "M",
-  island: "i",
-  worldedge: "E"
+  startbox: "u",
+  monument: "\u258B",
+  island: ".",
+  worldedge: "\u2591"
 };
 
 window.tileColors = {
   house: "crimson",
-  city: "burlywood",
+  city: "darkslategray",
   monument: "blueviolet",
   worldedge: "midnightblue"
 };
+
+let YOU = {x: 584398943189032458902543, y: 5238954073254879025348907, char: "&"};
 
 window.inverseTiles = {};
 for (let [key, value] of Object.entries(window.tiles)) {
   window.inverseTiles[value] = key;
 }
 
-let WORLD = {
+var WORLD = {
+  boxElem: document.getElementById('world-box'),
+  coordsElem: document.getElementById('world-coords'),
+  biomeElem: document.getElementById('world-biome'),
   seed: 20171007,
   gridRadius: 15,
-  edgeDist: 20000,
+  edgeDist: 500000,
   TILES: window.tiles,
-
-  setInvalids: function() {
+  invalidStand: '',
+  invalidPlace: '',
+  hardStand: '',
+  setInvalids: function () {
+    this.hardStand = this.TILES.mountain + this.TILES.forest + this.TILES.water;
     this.invalidStand = this.TILES.worldedge + this.TILES.water;
-    this.invalidPlace =
-      this.TILES.worldedge +
-      this.TILES.monument +
-      this.TILES.mountain +
-      this.TILES.water +
-      this.TILES.island +
-      this.TILES.tree +
-      this.TILES.forest;
+    this.invalidPlace = this.TILES.worldedge + this.TILES.monument + this.TILES.mountain + this.TILES.water + this.TILES.island + this.TILES.tree + this.TILES.forest;
   },
-  deriveTile: function(x, y) {
-    if (x === 0 && y === 0) {
-      //YOU.biome = "wasteland";
-      return WORLD.TILES.monument;
+  tilemap: [
+  ],
+  initialize: function () {
+    for (let i = - 1 * this.gridRadius; i <= this.gridRadius; i++) {
+      for (let j = - 1 * this.gridRadius; j <= this.gridRadius; j++) {
+        let tile = document.createElement('span');
+        tile.className = 'worldtile unselectable';
+        WORLD.boxElem.appendChild(tile);
+        WORLD.tilemap.push(tile);
+      }
+      WORLD.boxElem.appendChild(document.createElement('br'));
     }
+  },
+  build: function () {
+    let count = 0;
+    for (let i = - 1 * this.gridRadius; i <= this.gridRadius; i++) {
+      for (let j = - 1 * this.gridRadius; j <= this.gridRadius; j++) {
+        let newX = YOU.x + j,
+        newY = YOU.y - i,
+        tile = this.deriveTile(newX, newY);
+        WORLD.tilemap[count].id = newX + '|' + newY;
+        WORLD.tilemap[count].innerHTML = tile;
+        WORLD.tilemap[count].style.fontWeight = '';
+        if (newX === YOU.x && newY === YOU.y) {
+          YOU.currentTile = tile;
+          WORLD.tilemap[count].innerHTML = YOU.char;
+        }
+        count++;
+      }
+    }
+  },
+  otherPlayers: [
+  ],
+  otherObjs: [
+  ],
+  otherStumps: [
+  ],
+  checkPlayersAndObjs: function () {
+    for (let i = 0; i < this.otherStumps.length; i++) {
+      let x = this.otherStumps[i].x,
+      y = this.otherStumps[i].y;
+      if (YOU.x === x && YOU.y === y) {
+        YOU.currentTile = WORLD.TILES.grass;
+      } else {
+        WORLD.changeTile(x, y, WORLD.TILES.grass);
+      }
+    }
+    for (let i = 0; i < this.otherPlayers.length; i++) {
+      let x = this.otherPlayers[i].x,
+      y = this.otherPlayers[i].y;
+      // in case you forget, this will not need to include future building types, only ones that are generated in the clientside worldgen
+      WORLD.changeTile(x, y, WORLD.TILES.traveler, true);
+    }
+    let atop = false;
+    HANDS.doorBtn.style.display = 'none';
+    HANDS.breakBtnEl.style.display = 'none';
+    for (let i = 0; i < this.otherObjs.length; i++) {
+      let x = this.otherObjs[i].x,
+      y = this.otherObjs[i].y,
+      char = this.otherObjs[i].char,
+      canWalkOver = this.otherObjs[i].walk_over;
+      if (char === 'H') { // texturepack compatibility
+        char = WORLD.TILES.house;
+      }
+      if (char === 'C') {
+        char = WORLD.TILES.city;
+      }      // if it's a door and next to you, show "open door" button
 
-    // ground
+      if (Math.abs(x - YOU.x) <= 1 && Math.abs(y - YOU.y) <= 1 && this.otherObjs[i].is_door) {
+        HANDS.doorBtn.style.display = '';
+        HANDS.breakBtnEl.style.display = '';
+      }      // if it's breakable and next to you, show "dismantle" button
+
+      if (Math.abs(x - YOU.x) <= 1 && Math.abs(y - YOU.y) <= 1 && this.otherObjs[i].is_breakable) {
+        HANDS.breakBtnEl.style.display = '';
+      }
+      if (canWalkOver) {
+        if ((YOU.x !== x || YOU.y !== y)) {
+          if (document.getElementById(x + '|' + y).innerHTML !== WORLD.TILES.traveler) {
+            WORLD.changeTile(x, y, char);
+          }
+        }
+      } else {
+        WORLD.changeTile(x, y, char);
+        if (YOU.x === x && YOU.y === y) {
+          atop = true;
+        }
+      }
+    }
+    ENGINE.atop_another = atop;
+  },
+  changeTile: function (x, y, c, checkStructs) {
+    if (checkStructs === undefined) checkStructs = false;
+    let item = WORLD.deriveTile(x, y);
+    if (checkStructs && (item === WORLD.TILES.house || item === WORLD.TILES.city || item === WORLD.TILES.monument)) {
+      return;
+    }
+    document.getElementById(x + '|' + y).innerHTML = c;
+  },
+  //getTile: function (x, y) { // out of commission, thanks to pfg in discord
+  //    let tile = WORLD.deriveTile(x, y);
+  //    if (x === YOU.x && y === YOU.y) {
+  //        YOU.currentTile = tile;
+  //        if (tile !== WORLD.TILES.house && tile !== WORLD.TILES.city && tile !== WORLD.TILES.monument) {
+  //            return "<span id='" + x + "|" + y + "' class='worldtile unselectable' style='font-weight:bold;' >" + YOU.char + "</span>";
+  //        }
+  //    }
+  //    return "<span id='" + x + "|" + y + "' class='worldtile unselectable' >" + tile + "</span>";
+  //},
+  deriveTile: function (x, y) {
+    if (x === 0 && y === 0) {
+      YOU.biome = 'wasteland';
+      return WORLD.TILES.monument;
+    }    // ground
+
     let bottomtile = this.TILES.sand,
-      giganticPerl = this.getPerlin(x + 10000, y + 8000, 10000),
-      hugePerl = this.getPerlin(x, y, 5001),
-      bigPerl = this.getPerlin(x, y),
-      smallPerl = this.getPerlin(x, y, 10),
-      smallPerlAlt = this.getPerlin(y, x, 11),
-      biome = "wasteland";
-
+    giganticPerl = this.getPerlin(x, y + 5500, 10000),
+    hugePerl = this.getPerlin(x, y, 5001),
+    bigPerl = this.getPerlin(x, y),
+    smallPerl = this.getPerlin(x, y, 10),
+    smallPerlAlt = this.getPerlin(y, x, 11),
+    biome = 'wasteland';
     if (giganticPerl > 0.57) {
       if (giganticPerl < 0.578) {
         bottomtile = this.TILES.sand;
-        biome = "beach";
+        biome = 'beach';
       } else {
-        if (giganticPerl > 0.936) {
-          if (giganticPerl > 0.93615) {
+        if (giganticPerl > 0.99788) {
+          if (smallPerlAlt < - 0.85) {
             bottomtile = this.TILES.tree;
           } else {
             bottomtile = this.TILES.island;
           }
-          biome = "island";
+          biome = 'island';
         } else {
           bottomtile = this.TILES.water;
-          biome = "ocean";
+          biome = 'ocean';
         }
       }
-    } else if (hugePerl < -0.84) {
-      if (hugePerl < -0.85) {
+    } else if (hugePerl < - 0.84) {
+      if (hugePerl < - 0.85) {
         if (Math.abs(giganticPerl) > this.getPerlin(x, y, 27)) {
           bottomtile = this.TILES.forest;
-          biome = "forest";
+          biome = 'forest';
         } else {
           bottomtile = this.TILES.grass;
-          biome = "forest clearing";
+          biome = 'forest clearing';
         }
       } else {
         bottomtile = this.TILES.grass;
-        biome = "forest edge";
+        biome = 'forest edge';
       }
     } else {
       if (bigPerl > 0.7) {
         bottomtile = this.TILES.swamp;
-        biome = "swamp";
-      } else if (
-        bigPerl < -0.5 &&
-        Math.abs(giganticPerl) > this.getPerlin(x, y, 25)
-      ) {
+        biome = 'swamp';
+      } else if (bigPerl < - 0.5 && Math.abs(giganticPerl) > this.getPerlin(x, y, 25)) {
         bottomtile = this.TILES.mountain;
-        biome = "mountains";
+        biome = 'mountains';
       } else {
         if (smallPerl > 0.3) {
           bottomtile = this.TILES.grass;
-        } else if (smallPerlAlt < -0.85) {
+        } else if (smallPerlAlt < - 0.85) {
           bottomtile = this.TILES.tree;
         }
       }
-    }
+    }    //places
 
-    //places
-    if (WORLD.invalidPlace.indexOf(bottomtile) === -1) {
+    if (WORLD.invalidPlace.indexOf(bottomtile) === - 1) {
       let perlRand = this.getPerlin(x, y, 2.501);
       if (Math.floor(perlRand * 3400) === 421) {
         bottomtile = this.TILES.house;
@@ -117,9 +221,8 @@ let WORLD = {
       if (Math.floor(perlRand * 9000) === 4203) {
         bottomtile = this.TILES.city;
       }
-    }
+    }    //edge
 
-    //edge
     if (this.edgeDist - Math.abs(x) < 10) {
       if (this.edgeDist - Math.abs(x) < 1) {
         bottomtile = this.TILES.worldedge;
@@ -130,7 +233,7 @@ let WORLD = {
         }
       }
     }
-    if (20000 - Math.abs(y) < 10) {
+    if (this.edgeDist - Math.abs(y) < 10) {
       if (this.edgeDist - Math.abs(y) < 1) {
         bottomtile = this.TILES.worldedge;
       } else {
@@ -140,24 +243,177 @@ let WORLD = {
         }
       }
     }
-
+    if (x === YOU.x && y === YOU.y) {
+      YOU.biome = biome;
+    }
     return bottomtile;
   },
-  getPerlin: function(x, y, s = 100) {
+  getBiome: function (tile) {
+    // if (tile === 'w') return "Ocean";
+    // if (tile === '~') return "Swamp";
+    // if (tile === 'M') return "Mountains";
+    // if (tile === 'T') return "Forest";
+    // return "wasteland";
+    return YOU.biome;
+  },
+  getPerlin: function (x, y, s = 100) {
     return noise.simplex2(x / s, y / s);
+  },
+  prevStepHadPlayers: false,
+  prevStepHadObjs: false,
+  prevStepHadEdge: false,
+  prevStepNextToEdge: false,
+  prevStepNextToOcean: false,
+  prevStepHadCity: false,
+  prevStepHadHouse: false,
+  prevStepHadMon: false,
+  checkWorldNotifsAndLogs: function () {
+    if (SETTINGS.notifAny !== 'true') return; // this is also in NOTIF.new but since this function does so many things we might as well skip all the crazy stuff this function does if we can
+    let inner = WORLD.boxElem.innerHTML,
+    worldHas = function (t) {
+      return inner.indexOf(t) !== - 1;
+    };
+    if (SETTINGS.notifTraveler === 'true' && WORLD.otherPlayers.length > 0 && !WORLD.prevStepHadPlayers) {
+      NOTIF.new ('traveler nearby', 500);
+      ENGINE.log('in the distance, faint against the dark horizon, a traveler appears.');
+      WORLD.prevStepHadPlayers = true;
+    } else if (WORLD.otherPlayers.length === 0 && WORLD.prevStepHadPlayers) {
+      WORLD.prevStepHadPlayers = false;
+      NOTIF.stop();
+    }
+    if (SETTINGS.notifUnknown === 'true' && WORLD.otherObjs.length > 0 && !WORLD.prevStepHadObjs) {
+      NOTIF.new ('unknown location nearby', 300);
+      WORLD.prevStepHadObjs = true;
+    } else if (WORLD.otherObjs.length === 0 && WORLD.prevStepHadObjs) {
+      WORLD.prevStepHadObjs = false;
+      NOTIF.stop();
+    }
+    let boolmon = worldHas(WORLD.TILES.monument);
+    if (SETTINGS.notifUnknown === 'true' && !WORLD.prevStepHadMon && boolmon) {
+      NOTIF.new ('an enormous pillar', 300);
+      ENGINE.log('an enormous pillar of rock dominates the sky, its face a deep and smooth purple. it pierces the clouds of ash, splitting them to reveal a small glimpse of the blue sky beyond.');
+      WORLD.prevStepHadMon = true;
+    } else if (!boolmon && WORLD.prevStepHadMon) {
+      WORLD.prevStepHadMon = false;
+      NOTIF.stop();
+    }
+    let boolhouse = worldHas(WORLD.TILES.house);
+    if (SETTINGS.notifHouse === 'true' && !WORLD.prevStepHadHouse && boolhouse) {
+      NOTIF.new ('house nearby', 500);
+      WORLD.prevStepHadHouse = true;
+    } else if (!boolhouse && WORLD.prevStepHadHouse) {
+      WORLD.prevStepHadHouse = false;
+      NOTIF.stop();
+    }
+    let boolcity = worldHas(WORLD.TILES.city);
+    if (SETTINGS.notifCity === 'true' && !WORLD.prevStepHadCity && boolcity) {
+      NOTIF.new ('city nearby', 500);
+      WORLD.prevStepHadCity = true;
+    } else if (!boolcity && WORLD.prevStepHadCity) {
+      WORLD.prevStepHadCity = false;
+      NOTIF.stop();
+    }
+    let booledge = worldHas(WORLD.TILES.worldedge);
+    if (booledge && !WORLD.prevStepHadEdge) {
+      ENGINE.log('the edge of the world rises out of the distant landscape. the sky gets blotted out as you near it.');
+      WORLD.prevStepHadEdge = true;
+    } else if (!booledge && WORLD.prevStepHadEdge) {
+      WORLD.prevStepHadEdge = false;
+    }
+    let boolproxedge = YOU.checkProximFor(2, WORLD.TILES.worldedge);
+    if (boolproxedge && !WORLD.prevStepNextToEdge) {
+      ENGINE.log('a massive wall of smooth gray rock rises into the sky. this does not seem like any natural formation of rock; it juts straight out of the ground at a right angle, and bends up and over your head for many kilometers. if there is a way past this, you clearly are not wanted to go there.');
+      WORLD.prevStepNextToEdge = true;
+    } else if (!boolproxedge && WORLD.prevStepNextToEdge) {
+      WORLD.prevStepNextToEdge = false;
+    }
+    let boolocean = YOU.checkProximFor(1, WORLD.TILES.water);
+    if (boolocean && !WORLD.prevStepNextToOcean) {
+      ENGINE.log('the calm ocean laps onto the sand at your feet. from this close the acidic moisture hanging over the water can burn your face; this water is not safe for drinking, much less for swimming. clearly, there is no life left here either.');
+      WORLD.prevStepNextToOcean = true;
+    } else if (!boolocean && WORLD.prevStepNextToOcean) {
+      WORLD.prevStepNextToOcean = false;
+    }
+  },
+  returnTileDesc: function (el) {
+    switch (el.innerHTML) {
+      case WORLD.TILES.sand:
+        {
+          return 'sandy plains mixed with ash, forming a dull brown mixture that your feet sink slightly into with every step.';
+        }
+      case WORLD.TILES.grass:
+        {
+          return 'grass, or some more durable form of the original plant, breaks the surface of the layer of ash to introduce some small color to the world.';
+        }
+      case WORLD.TILES.tree:
+        {
+          return 'a family of trees, mostly dead, but some still hanging onto life. perhaps there\'s water for them deep underground.';
+        }
+      case WORLD.TILES.water:
+        {
+          return 'ocean, tainted by the damaged atmosphere to become permanently acidic.';
+        }
+      case WORLD.TILES.swamp:
+        {
+          return 'muddy swamps, full of old branches and dead plants. steam fills the air from constant bubbles.';
+        }
+      case WORLD.TILES.mountain:
+        {
+          return 'tall mountains, some whose peaks even break through the ash blanketing the world.';
+        }
+      case WORLD.TILES.forest:
+        {
+          return 'strong gray trees, reaching into the sky and blocking out what little light is left. their tall and tangled roots make travel slow and difficult.';
+        }
+      case WORLD.TILES.house:
+        {
+          return 'an old structure, probably used for residence, or perhaps even small business.';
+        }
+      case WORLD.TILES.city:
+        {
+          return 'a city, arid and empty, pierces the clouds of ash with its highest towers.';
+        }
+      case WORLD.TILES.monument:
+        {
+          return 'a massive monument, an imposing figure on the surrounding landscape, made of some kind of deep purple material. it reaches high enough to poke through the floating ash in the sky.';
+        }
+      case WORLD.TILES.island:
+        {
+          return 'fresh sand, unlike the filth from back on the shore. perhaps the acidic moisture protected this place from the falling ash.';
+        }
+      case WORLD.TILES.worldedge:
+        {
+          return 'a huge wall of rock, smooth and dark, curving inward toward the land you stand upon and reaching higher than you can see.';
+        }
+      case '<b>' + WORLD.TILES.traveler + '</b>':
+        {
+          if (el.id === YOU.x + '|' + YOU.y) {
+            return 'it\'s you, a traveler.';
+          }
+          return 'a traveler.';
+        }
+      case WORLD.TILES.startbox:
+        {
+          return 'some kind of container. it looks new compared to the surrounding landscape.';
+        }
+      default:
+        {
+          return 'unsure of this location.';
+        }
+    }
   }
 };
-
-WORLD.setInvalids();
-
-function generateWorldTileAt(x, y) {
-  return WORLD.deriveTile(x, -y);
-}
-
-// ==================================
+// I like to code as much on my own from scratch as possible, but Perlin noise
+// generation was some pretty heavy math that I couldn't figure out myself.
+// So, I copied and modified it slightly from the below Github link for 
+// this project. Much thanks to Stefan Gustavson, Peter Eastman, 
+// and Joseph Gentle for doing the dirty work on Perlin noise, even though 
+// they'll probably never see my game. 
+// Everything below this point is no longer my own work, and the licensing
+// and copyright statements only apply thusly.
+// ==============================================
 // https://github.com/josephg/noisejs
 // Copyright (c) 2013, Joseph Gentle
-
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
 // REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
 // AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
@@ -165,35 +421,32 @@ function generateWorldTileAt(x, y) {
 // LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 // OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
-{
-  let module = (window.noise = {});
-
-  function Grad(x, y, z) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-  }
-
-  Grad.prototype.dot2 = function(x, y) {
-    return this.x * x + this.y * y;
+!function (n) {
+  var t = n.noise = {
   };
-
-  var grad3 = [
-    new Grad(1, 1, 0),
-    new Grad(-1, 1, 0),
-    new Grad(1, -1, 0),
-    new Grad(-1, -1, 0),
-    new Grad(1, 0, 1),
-    new Grad(-1, 0, 1),
-    new Grad(1, 0, -1),
-    new Grad(-1, 0, -1),
-    new Grad(0, 1, 1),
-    new Grad(0, -1, 1),
-    new Grad(0, 1, -1),
-    new Grad(0, -1, -1)
-  ];
-
-  var p = [
+  function e(n, t, e) {
+    this.x = n,
+    this.y = t,
+    this.z = e
+  }
+  e.prototype.dot2 = function (n, t) {
+    return this.x * n + this.y * t
+  };
+  var r = [
+    new e(1, 1, 0),
+    new e( - 1, 1, 0),
+    new e(1, - 1, 0),
+    new e( - 1, - 1, 0),
+    new e(1, 0, 1),
+    new e( - 1, 0, 1),
+    new e(1, 0, - 1),
+    new e( - 1, 0, - 1),
+    new e(0, 1, 1),
+    new e(0, - 1, 1),
+    new e(0, 1, - 1),
+    new e(0, - 1, - 1)
+  ],
+  o = [
     151,
     160,
     137,
@@ -450,93 +703,47 @@ function generateWorldTileAt(x, y) {
     61,
     156,
     180
-  ];
-
-  var perm = new Array(512);
-  var gradP = new Array(512);
-
-  module.seed = function(seed) {
-    if (seed > 0 && seed < 1) {
-      seed *= 65536;
+  ],
+  a = new Array(512),
+  w = new Array(512);
+  t.seed = function (n) {
+    n > 0 && n < 1 && (n *= 65536),
+    (n = Math.floor(n)) < 256 && (n |= n << 8);
+    for (var t = 0; t < 256; t++) {
+      var e;
+      e = 1 & t ? o[t] ^ 255 & n : o[t] ^ n >> 8 & 255,
+      a[t] = a[t + 256] = e,
+      w[t] = w[t + 256] = r[e % 12]
     }
+  },
+  t.seed(WORLD.seed);
+  var i = 0.5 * (Math.sqrt(3) - 1),
+  s = (3 - Math.sqrt(3)) / 6;
+  t.simplex2 = function (n, t) {
+    var e,
+    r,
+    o = (n + t) * i,
+    h = Math.floor(n + o),
+    f = Math.floor(t + o),
+    d = (h + f) * s,
+    u = n - h + d,
+    v = t - f + d;
+    u > v ? (e = 1, r = 0)  : (e = 0, r = 1);
+    var c = u - e + s,
+    y = v - r + s,
+    M = u - 1 + 2 * s,
+    l = v - 1 + 2 * s,
+    p = w[(h &= 255) + a[f &= 255]],
+    x = w[h + e + a[f + r]],
+    q = w[h + 1 + a[f + 1]],
+    A = 0.5 - u * u - v * v,
+    m = 0.5 - c * c - y * y,
+    z = 0.5 - M * M - l * l;
+    return 70 * ((A < 0 ? 0 : (A *= A) * A * p.dot2(u, v)) + (m < 0 ? 0 : (m *= m) * m * x.dot2(c, y)) + (z < 0 ? 0 : (z *= z) * z * q.dot2(M, l)))
+  }
+}(this);
 
-    seed = Math.floor(seed);
-    if (seed < 256) {
-      seed |= seed << 8;
-    }
-
-    for (var i = 0; i < 256; i++) {
-      var v;
-      if (i & 1) {
-        v = p[i] ^ (seed & 255);
-      } else {
-        v = p[i] ^ ((seed >> 8) & 255);
-      }
-
-      perm[i] = perm[i + 256] = v;
-      gradP[i] = gradP[i + 256] = grad3[v % 12];
-    }
-  };
-
-  module.seed(WORLD.seed);
-
-  var F2 = 0.5 * (Math.sqrt(3) - 1);
-  var G2 = (3 - Math.sqrt(3)) / 6;
-
-  module.simplex2 = function(xin, yin) {
-    var n0, n1, n2;
-
-    var s = (xin + yin) * F2;
-    var i = Math.floor(xin + s);
-    var j = Math.floor(yin + s);
-    var t = (i + j) * G2;
-    var x0 = xin - i + t;
-    var y0 = yin - j + t;
-
-    var i1, j1;
-    if (x0 > y0) {
-      i1 = 1;
-      j1 = 0;
-    } else {
-      i1 = 0;
-      j1 = 1;
-    }
-
-    var x1 = x0 - i1 + G2;
-    var y1 = y0 - j1 + G2;
-    var x2 = x0 - 1 + 2 * G2;
-    var y2 = y0 - 1 + 2 * G2;
-
-    i &= 255;
-    j &= 255;
-    var gi0 = gradP[i + perm[j]];
-    var gi1 = gradP[i + i1 + perm[j + j1]];
-    var gi2 = gradP[i + 1 + perm[j + 1]];
-
-    var t0 = 0.5 - x0 * x0 - y0 * y0;
-    if (t0 < 0) {
-      n0 = 0;
-    } else {
-      t0 *= t0;
-      n0 = t0 * t0 * gi0.dot2(x0, y0);
-    }
-    var t1 = 0.5 - x1 * x1 - y1 * y1;
-    if (t1 < 0) {
-      n1 = 0;
-    } else {
-      t1 *= t1;
-      n1 = t1 * t1 * gi1.dot2(x1, y1);
-    }
-    var t2 = 0.5 - x2 * x2 - y2 * y2;
-    if (t2 < 0) {
-      n2 = 0;
-    } else {
-      t2 *= t2;
-      n2 = t2 * t2 * gi2.dot2(x2, y2);
-    }
-
-    return 70 * (n0 + n1 + n2);
-  };
+function generateWorldTileAt(x, y) {
+  return WORLD.deriveTile(x, -y);
 }
-
 window.generateWorldTileAt = generateWorldTileAt;
