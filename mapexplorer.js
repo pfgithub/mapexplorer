@@ -261,6 +261,10 @@ function scale(userFactor, centerX, centerY) {
     characterWidth = 0.0005;
     characterHeight = 0.0005;
   }
+  if (characterWidth > 1024) {
+    characterWidth = 1024;
+    characterHeight = 1024;
+  }
 
   drawOffsetX -=
     centerX * ow - drawOffsetX - (centerX * characterWidth - drawOffsetX);
@@ -268,13 +272,11 @@ function scale(userFactor, centerX, centerY) {
     centerY * oh - drawOffsetY - (centerY * characterHeight - drawOffsetY);
 
   rerender();
-  console.log(characterHeight);
 }
 
 document.addEventListener("wheel", e => {
   let [centerX, centerY] = cursorPosToBoardCoordExact(e.clientX, e.clientY);
+  let whl = normalizeWheel(e);
 
-  let dy = e.deltaY;
-
-  scale(dy, centerX, centerY);
+  scale(whl.spinY * 3, centerX, centerY);
 });
