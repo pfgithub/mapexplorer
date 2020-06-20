@@ -277,6 +277,9 @@ function scale(userFactor, centerX, centerY) {
 document.addEventListener("wheel", e => {
   let [centerX, centerY] = cursorPosToBoardCoordExact(e.clientX, e.clientY);
   let whl = normalizeWheel(e);
+  console.log(whl);
+  let scrollDist = whl.pixelY * 0.5666;
+  console.log(scrollDist);
 
-  scale(whl.spinY * 3, centerX, centerY);
+  scale(scrollDist, centerX, centerY);
 });
