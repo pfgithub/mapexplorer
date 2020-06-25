@@ -65,17 +65,6 @@ async function startMinecraft() {
   };
   rerender();
 }
-let dohash = () => {
-  if (window.location.hash === "#minecraft") {
-    startMinecraft().catch(e => alert("error: " + e.toString()));
-  } else {
-    if (!mcBak) mcBak = minecraft;
-    minecraft = false;
-    rerender();
-  }
-};
-window.onhashchange = () => dohash();
-dohash();
 
 function renderChar(tile, x, y, w, h, fastMode) {
   if (minecraft && minecraft[tile]) {
@@ -344,3 +333,15 @@ document.addEventListener("wheel", e => {
 
   scale(scrollDist, centerX, centerY);
 });
+
+let dohash = () => {
+  if (window.location.hash === "#minecraft") {
+    startMinecraft().catch(e => alert("error: " + e.toString()));
+  } else {
+    if (!mcBak) mcBak = minecraft;
+    minecraft = false;
+    rerender();
+  }
+};
+window.onhashchange = () => dohash();
+dohash();
