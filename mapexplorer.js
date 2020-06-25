@@ -18,6 +18,96 @@ let drawOffsetY = -150;
 let gmxCoord = 0;
 let gmyCoord = 0;
 
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    let img = document.createElement("img");
+    img.src = src;
+    img.onload = () => {
+      console.log("Loaded " + src);
+      resolve(img);
+    };
+    img.onerror = e => {
+      console.log("Error loading " + src, e);
+      reject(new Error("error loading " + src));
+    };
+  });
+}
+
+let minecraft = false;
+let mcBak;
+let mcColors = {
+  "\u00a0": "#dbcfa3",
+  ",": "#417243",
+  t: "#747236",
+  w: "#385290",
+  "~": "#2f3f2a",
+  M: "#7d7d7d",
+  T: "#48452c",
+  " ": "#0f0a18",
+  ".": "#be6621",
+  "\u2591": "#55555"
+};
+async function startMinecraft() {
+  console.log("Loading...");
+
+  if (mcBak) minecraft = mcBak;
+  minecraft = {
+    "\u00a0": await loadImage("images/sand.png"),
+    ",": await loadImage("images/grass.png"),
+    t: await loadImage("images/tree.png"),
+    w: await loadImage("images/water.gif"),
+    "~": await loadImage("images/swamp.png"),
+    M: await loadImage("images/mountain.png"),
+    T: await loadImage("images/forest.png"),
+    " ": await loadImage("images/monument.png"),
+    ".": await loadImage("images/island.png"),
+    "\u2591": await loadImage("images/worldedge.png")
+  };
+  rerender();
+}
+let dohash = () => {
+  if (window.location.hash === "#minecraft") {
+    startMinecraft().catch(e => alert("error: " + e.toString()));
+  } else {
+    if (!mcBak) mcBak = minecraft;
+    minecraft = false;
+    rerender();
+  }
+};
+window.onhashchange = () => dohash();
+dohash();
+
+function renderChar(tile, x, y, w, h, fastMode) {
+  if (minecraft && minecraft[tile]) {
+    if (!fastMode) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(minecraft[tile], x, y, w, h);
+    } else {
+      ctx.fillStyle = mcColors[tile];
+      ctx.fillRect(x, y, w, h);
+    }
+    return;
+  }
+  if (fastMode) {
+    if (tile === "\u00a0") {
+      w = 0;
+      h = 0;
+    } else if (tile === ",") {
+      w *= 0.333;
+      h *= 0.333;
+    } else if (tile === "~") {
+      w *= 0.7;
+      h *= 0.2;
+    } else {
+      w *= 0.333;
+      h *= 0.7;
+    }
+    ctx.fillRect(x, y, w, h);
+  } else {
+    ctx.fillText(tile, x, y);
+  }
+}
+
 let rerenderTriggered = false;
 function rerender() {
   if (rerenderTriggered) return;
@@ -99,43 +189,14 @@ function rerenderNow() {
         );
         ctx.fillStyle = "white";
       }
-      if (fastMode) {
-        if (tile === "\u00a0") {
-        } else if (tile === ",") {
-          ctx.fillRect(
-            xUL,
-            yUL,
-            (characterWidth * farScaleFactor) / 3,
-            (characterHeight * farScaleFactor) / 3
-          );
-        } else if (tile === "~") {
-          ctx.fillRect(
-            xUL,
-            yUL,
-            characterWidth * farScaleFactor * 0.7,
-            characterHeight * farScaleFactor * 0.2
-          );
-        } else {
-          ctx.fillRect(
-            xUL,
-            yUL,
-            (characterWidth * farScaleFactor) / 3,
-            characterHeight * farScaleFactor * 0.7
-          );
-        }
-      } else {
-        ctx.fillText(tile, xUL, yUL);
-        if (gridMode > 1) {
-          ctx.beginPath();
-          ctx.rect(
-            xUL,
-            yUL,
-            characterWidth * farScaleFactor,
-            characterHeight * farScaleFactor
-          );
-          ctx.stroke();
-        }
-      }
+      renderChar(
+        tile,
+        Math.floor(xUL),
+        Math.floor(yUL),
+        Math.ceil(characterWidth * farScaleFactor),
+        Math.ceil(characterHeight * farScaleFactor),
+        fastMode
+      );
     }
   }
 
@@ -278,7 +339,7 @@ document.addEventListener("wheel", e => {
   let [centerX, centerY] = cursorPosToBoardCoordExact(e.clientX, e.clientY);
   let whl = normalizeWheel(e);
   console.log(whl);
-  let scrollDist = whl.pixelY * 0.05666;
+  let scrollDist = whl.pixelY * 0.02666;
   console.log(scrollDist);
 
   scale(scrollDist, centerX, centerY);
