@@ -66,7 +66,7 @@ async function startMinecraft() {
   rerender();
 }
 
-function renderChar(tile, x, y, w, h, fastMode) {
+function renderChar(tile, x, y, w, h, fastMode, selected, gridMode) {
   if (minecraft && minecraft[tile]) {
     if (!fastMode) {
       ctx.imageSmoothingEnabled = false;
@@ -75,7 +75,18 @@ function renderChar(tile, x, y, w, h, fastMode) {
       ctx.fillStyle = mcColors[tile];
       ctx.fillRect(x, y, w, h);
     }
+    if (selected) {
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+    }
     return;
+  }
+  let special = window.tileColors[window.inverseTiles[tile]];
+  ctx.fillStyle = special || "black";
+  if (selected || special) {
+    if (selected) ctx.fillStyle = "black";
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = "white";
   }
   if (fastMode) {
     if (tile === "\u00a0") {
@@ -156,35 +167,20 @@ function rerenderNow() {
   for (let y = yst; y <= cy; y++) {
     for (let x = xst; x <= cx; x++) {
       let tile = generateWorldTileAt(x * farScaleFactor, y * farScaleFactor);
-      let special = window.tileColors[window.inverseTiles[tile]];
-      ctx.fillStyle = special || "black";
 
       let xUL = x * (characterWidth * farScaleFactor) - drawOffsetX;
       let yUL = y * (characterHeight * farScaleFactor) - drawOffsetY;
-      if (
-        (x === Math.floor(gmxCoord / farScaleFactor) &&
-          y === Math.floor(gmyCoord / farScaleFactor)) ||
-        special
-      ) {
-        // console.log(xUL, yUL);
-        if (x === gmxCoord && y === gmyCoord) {
-          ctx.fillStyle = "black";
-        }
-        ctx.fillRect(
-          xUL,
-          yUL,
-          characterWidth * farScaleFactor,
-          characterHeight * farScaleFactor
-        );
-        ctx.fillStyle = "white";
-      }
+
       renderChar(
         tile,
         Math.floor(xUL),
         Math.floor(yUL),
         Math.ceil(characterWidth * farScaleFactor),
         Math.ceil(characterHeight * farScaleFactor),
-        fastMode
+        fastMode,
+        x === Math.floor(gmxCoord / farScaleFactor) &&
+          y === Math.floor(gmyCoord / farScaleFactor),
+        gridMode
       );
     }
   }
