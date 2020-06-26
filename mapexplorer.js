@@ -45,7 +45,7 @@ let mcColors = {
   T: "#48452c",
   " ": "#0f0a18",
   ".": "#be6621",
-  "\u2591": "#55555"
+  "\u2591": "#555555"
 };
 async function startMinecraft() {
   console.log("Loading...");
