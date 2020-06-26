@@ -118,6 +118,7 @@ function rerender() {
   rerenderTriggered = true;
   window.requestAnimationFrame(rerenderNow);
 }
+let longDistanceRender = "false"; // tri-state boolean between false, true, and "false". you know, very resonable.
 function rerenderNow() {
   rerenderTriggered = false;
 
@@ -153,11 +154,13 @@ function rerenderNow() {
   };
 
   updateXYST();
-  while (expectedRenderCount > 40000) {
+  let maxRenderCount = longDistanceRender === true ? 4000000 : 40000;
+  while (expectedRenderCount > maxRenderCount) {
     farScaleFactor *= 10;
     gridMode++;
     updateXYST();
   }
+  longDistanceRender = longDistanceRender === true ? "false" : false;
   if (expectedRenderCount > 5000) {
     fastMode = true;
   }
@@ -334,7 +337,37 @@ document.addEventListener("wheel", e => {
   scale(scrollDist, centerX, centerY);
 });
 
-window.onkeydown = k => {
+async function showLongDistanceRenderText() {
+  //WIDTH, HEIGHT
+  ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  ctx.font = "12pt sans-serif";
+  ctx.textBaseline = "top";
+  let targetTile = generateWorldTileAt(gmxCoord, gmyCoord);
+  let text = `Rendering...`;
+  let textSize = ctx.measureText(text);
+  let textHeight = ctx.measureText("@").width; // approx. see https://stackoverflow.com/questions/1134586/how-can-you-find-the-height-of-text-on-an-html-canvas
+  ctx.fillStyle = "white";
+  ctx.shadowColor = "rgba(0,0,0,0.5)";
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 3;
+  let wX = textSize.width + 20;
+  let wY = textHeight + 20;
+  let rX = WIDTH / 2 - wX;
+  let rY = HEIGHT / 2 - wY;
+  ctx.fillRect(rX, rY, wX, wY);
+  ctx.shadowColor = "";
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillStyle = "black";
+  ctx.fillText(text, rX + 10, rY + 10);
+  await new Promise(r => window.requestAnimationFrame(r));
+}
+
+window.onkeydown = async k => {
   if (k.code === "ArrowLeft") {
     gmxCoord -= 1;
   } else if (k.code === "ArrowRight") {
@@ -354,6 +387,9 @@ window.onkeydown = k => {
   } else if (k.code === "KeyM") {
     if (minecraft === false) startmc();
     else endmc();
+  } else if (k.code === "KeyK") {
+    await showLongDistanceRenderText();
+    longDistanceRender = !longDistanceRender;
   } else {
     return;
   }
