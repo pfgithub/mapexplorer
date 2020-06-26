@@ -48,9 +48,13 @@ let mcColors = {
   "\u2591": "#555555"
 };
 async function startMinecraft() {
-  console.log("Loading...");
+  minecraft = undefined;
 
-  if (mcBak) minecraft = mcBak;
+  if (mcBak) {
+    minecraft = mcBak;
+    rerender();
+    return;
+  }
   minecraft = {
     "\u00a0": await loadImage("images/sand.png"),
     ",": await loadImage("images/grass.png"),
@@ -67,8 +71,8 @@ async function startMinecraft() {
 }
 
 function renderChar(tile, x, y, w, h, fastMode, selected, gridMode) {
-  if (minecraft && minecraft[tile]) {
-    if (!fastMode) {
+  if (minecraft === undefined || (minecraft && minecraft[tile])) {
+    if (!fastMode && minecraft !== undefined) {
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(minecraft[tile], x, y, w, h);
     } else {
@@ -330,14 +334,47 @@ document.addEventListener("wheel", e => {
   scale(scrollDist, centerX, centerY);
 });
 
-let dohash = () => {
-  if (window.location.hash === "#minecraft") {
-    startMinecraft().catch(e => alert("error: " + e.toString()));
+window.onkeydown = k => {
+  if (k.code === "ArrowLeft") {
+    gmxCoord -= 1;
+  } else if (k.code === "ArrowRight") {
+    gmxCoord += 1;
+  } else if (k.code === "ArrowUp") {
+    gmyCoord -= 1;
+  } else if (k.code === "ArrowDown") {
+    gmyCoord += 1;
+  } else if (k.code === "KeyW") {
+    drawOffsetY -= 100;
+  } else if (k.code === "KeyS") {
+    drawOffsetY += 100;
+  } else if (k.code === "KeyA") {
+    drawOffsetX -= 100;
+  } else if (k.code === "KeyD") {
+    drawOffsetX += 100;
+  } else if (k.code === "KeyM") {
+    if (minecraft === false) startmc();
+    else endmc();
   } else {
-    if (!mcBak) mcBak = minecraft;
-    minecraft = false;
-    rerender();
+    return;
   }
+  rerender();
 };
+
+let startmc = () => {
+  if (minecraft !== false) return;
+  startMinecraft().catch(e => alert("error: " + e.toString()));
+};
+let endmc = () => {
+  if (minecraft === false) return;
+  if (!mcBak) mcBak = minecraft;
+  minecraft = false;
+  rerender();
+};
+
+let dohash = () => {
+  if (window.location.hash === "#minecraft") startmc();
+  else endmc();
+};
+
 window.onhashchange = () => dohash();
 dohash();
