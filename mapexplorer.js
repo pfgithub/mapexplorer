@@ -117,6 +117,7 @@ function rerender() {
   if (rerenderTriggered) return;
   rerenderTriggered = true;
   window.requestAnimationFrame(rerenderNow);
+    sethash();
 }
 let longDistanceRender = "false"; // tri-state boolean between false, true, and "false". you know, very resonable.
 function rerenderNow() {
@@ -223,7 +224,6 @@ function updateBoardSize() {
   rerender();
 }
 
-updateBoardSize();
 
 window.addEventListener("resize", () => {
   console.log("resize");
@@ -407,10 +407,22 @@ let endmc = () => {
   rerender();
 };
 
+let sethash = () => {
+    location.replace(location.href.replace(/#.+?$/, "")+"#,"+[drawOffsetX,drawOffsetY,gmxCoord,gmyCoord,characterWidth,characterHeight].join(","));
+};
+
 let dohash = () => {
-  if (window.location.hash === "#minecraft") startmc();
-  else endmc();
+    if(!window.location.hash) return;
+  let [,dox,doy,selx,sely,cw,ch] = window.location.hash.split(",");
+    drawOffsetX =+ dox;
+    drawOffsetY =+ doy;
+    gmxCoord =+ selx;
+    gmyCoord =+ sely;
+    characterWidth =+ cw;
+    characterHeight =+ ch;
 };
 
 window.onhashchange = () => dohash();
 dohash();
+updateBoardSize();
+endmc();
