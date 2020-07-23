@@ -390,6 +390,13 @@ window.onkeydown = async k => {
   } else if (k.code === "KeyK") {
     await showLongDistanceRenderText();
     longDistanceRender = !longDistanceRender;
+  } else if(k.code === "KeyG") {
+    const loc = prompt("x,y", gmxCoord+","+(-gmyCoord));
+      const [xc, yc] = loc.split(",");
+      if(!xc || !yc) return alert("expected x,y");
+      if(isNaN(+xc) || isNaN(+yc)) return alert("expected x,y");
+      gmxCoord = xc;
+      gmyCoord = -yc;
   } else {
     return;
   }
@@ -407,19 +414,31 @@ let endmc = () => {
   rerender();
 };
 
-let sethash = () => {
-    location.replace(location.href.replace(/#.+?$/, "")+"#,"+[drawOffsetX,drawOffsetY,gmxCoord,gmyCoord,characterWidth,characterHeight].join(","));
+let mych = false;
+let sethash = () => {};
+let sethash2 = () => {
+    let nv = (location.href.replace(/#.+?$/, "")+"#,"+[drawOffsetX,drawOffsetY,gmxCoord,gmyCoord,characterWidth].join(","));
+    if(nv !== location.href) {
+     mych = true;
+        location.replace(nv);
+
+    }
 };
 
+setInterval(() => sethash2(), 200);
+
 let dohash = () => {
+    if(mych) {mych = false; return;}
+    console.log("hash changed");
     if(!window.location.hash) return;
-  let [,dox,doy,selx,sely,cw,ch] = window.location.hash.split(",");
+  let [,dox,doy,selx,sely,cw] = window.location.hash.split(",");
     drawOffsetX =+ dox;
     drawOffsetY =+ doy;
     gmxCoord =+ selx;
     gmyCoord =+ sely;
     characterWidth =+ cw;
-    characterHeight =+ ch;
+    characterHeight =+ cw;
+    rerender();
 };
 
 window.onhashchange = () => dohash();
