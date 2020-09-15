@@ -371,15 +371,28 @@ async function showLongDistanceRenderText() {
     await new Promise(r => window.requestAnimationFrame(r));
 }
 
+function fitGmxToScreen() {
+    const xUL = gmxCoord * characterWidth;
+    if(xUL < drawOffsetX) drawOffsetX = xUL;
+    if(xUL + characterWidth > drawOffsetX + WIDTH) drawOffsetX = xUL + characterWidth - WIDTH;
+    const yUL = gmyCoord * characterHeight;
+    if(yUL < drawOffsetY) drawOffsetY = yUL;
+    if(yUL + characterHeight > drawOffsetY + HEIGHT) drawOffsetY = yUL + characterHeight - HEIGHT;
+}
+
 window.onkeydown = async k => {
     if (k.code === "ArrowLeft") {
         gmxCoord -= 1;
+        fitGmxToScreen();
     } else if (k.code === "ArrowRight") {
         gmxCoord += 1;
+        fitGmxToScreen();
     } else if (k.code === "ArrowUp") {
         gmyCoord -= 1;
+        fitGmxToScreen();
     } else if (k.code === "ArrowDown") {
         gmyCoord += 1;
+        fitGmxToScreen();
     } else if (k.code === "KeyW") {
         drawOffsetY -= 100;
     } else if (k.code === "KeyS") {
@@ -399,8 +412,9 @@ window.onkeydown = async k => {
         const [xc, yc] = loc.split(",");
         if (!xc || !yc) return alert("expected x,y");
         if (isNaN(+xc) || isNaN(+yc)) return alert("expected x,y");
-        gmxCoord = xc;
+        gmxCoord = +xc;
         gmyCoord = -yc;
+        fitGmxToScreen();
     } else {
         return;
     }
