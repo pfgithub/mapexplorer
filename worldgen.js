@@ -32,6 +32,7 @@ for (let [key, value] of Object.entries(window.tiles)) {
 }
 
 const WORLD = __WG_WORLD;
+WORLD.setInvalids();
 WORLD.TILES = tiles;
 
 function generateWorldTileAt(x, y) {
