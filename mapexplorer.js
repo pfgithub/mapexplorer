@@ -120,6 +120,8 @@ function rerender() {
     sethash();
 }
 let longDistanceRender = "false"; // tri-state boolean between false, true, and "false". you know, very resonable.
+// hi I'm coming back to this code months later and I have no clue what "false" means in longDistanceRender or why it's used. I think I should be able to remove it?
+// OH I see ok so it's "false" so that when you press K, if you were already in longdistancerender it turns it off. that "makes sense"
 function rerenderNow() {
     rerenderTriggered = false;
 
@@ -155,14 +157,16 @@ function rerenderNow() {
     };
 
     updateXYST();
-    let maxRenderCount = longDistanceRender === true ? 4000000 : 40000;
+    let minPixelsPerTile = longDistanceRender === true ? 1 : 10;
+    //minPixelsPerTile = 0.5; // sad it takes so long to generate the world in js. this would look so much cooler if I could do this. I could at least switch to webgl, but that doesn't fix the tile generation time
+    let maxRenderCount = (window.innerWidth / minPixelsPerTile) * (window.innerHeight / minPixelsPerTile);
     while (expectedRenderCount > maxRenderCount) {
-        farScaleFactor *= 10;
+        farScaleFactor *= 2;
         gridMode++;
         updateXYST();
     }
     longDistanceRender = longDistanceRender === true ? "false" : false;
-    if (expectedRenderCount > 5000) {
+    if (expectedRenderCount > 5000 || farScaleFactor !== 1) {
         fastMode = true;
     }
     if (expectedRenderCount > 1000) {
